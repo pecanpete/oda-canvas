@@ -703,24 +703,50 @@ spec:
               eventNotification:
                 type: object  
                 properties:  
-                  publishedEvents: 
+                  publishedNotifications: 
                     type: array
                     items:
                       type: object
                       properties:
                         name:
                           type: string
-                        href:
+                          description: Name of publishedNotification that this component is dependent on
+                        specification:
                           type: string
-                  subscribedEvents: 
+                          format: url
+                          description: url to the specification of the Notification. e.g. url to the swagger file
+                        path:
+                          type: string
+                          description: the path to the hub for this Notification
+                        port:
+                          type: integer
+                          description: The port where the hub is exposed 
+                      required:
+                      - name
+                      - path
+                      - port
+                  subscribedNotifications: 
                     type: array
                     items:
                       type: object
                       properties:
                         name:
                           type: string
-                        href:
+                          description: Name of subscribedNotification that this component is dependent on
+                        specification:
                           type: string
+                          format: url
+                          description: url to the specification of the Notification. e.g. url to the swagger file
+                        path:
+                          type: string
+                          description: the path to the callback for this subscription
+                        port:
+                          type: integer
+                          description: The port where the callback is exposed 
+                      required:
+                      - name
+                      - path
+                      - port
               management:
                 type: object  
                 properties:  
