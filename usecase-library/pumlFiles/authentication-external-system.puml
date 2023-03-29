@@ -5,7 +5,6 @@ participant SystemUser as "System User"
 participant APIGateway as "API Gateway"
 participant ComponentImplementation as "Component Implementation"
 participant IdentityManagementSystem as "Identity Management System"
-actor Operations
 
 SystemUser -> IdentityManagementSystem : Authenticate with clientId/secret
 SystemUser <- IdentityManagementSystem : JWT token
@@ -13,21 +12,31 @@ SystemUser <- IdentityManagementSystem : JWT token
 SystemUser -> APIGateway : Request to API with token
 APIGateway -> IdentityManagementSystem: Validate token
 
-group Valid token
+alt Valid token
     APIGateway <- IdentityManagementSystem: Token is valid
     APIGateway -> APIGateway: Test if audience exists against Component Implementation
-    group No role against component implementation
-        APIGateway -> SystemUser : Return Unauthorized (HTTP 401) response
-    end
-    group At least one role against component implementation
+    alt No role against component implementation
+        APIGateway -> SystemUser : Return Forbidden (HTTP 403) response
+    else At least one role against component implementation
         APIGateway -> ComponentImplementation: Request to component implementation
-        ComponentImplementation -> ComponentImplementation: Apply role-based access control
-        APIGateway <- ComponentImplementation: Response from component implementation
-        SystemUser <- APIGateway : Response from API
+        ComponentImplementation -> IdentityManagementSystem: Validate token
+        alt Valid token
+            ComponentImplementation <- IdentityManagementSystem: Token is valid
+            ComponentImplementation -> ComponentImplementation: Apply role-based access control
+            alt Valid role
+                APIGateway <- ComponentImplementation: Response from component implementation
+                SystemUser <- APIGateway : Response from API
+            else Invalid role
+                APIGateway <- ComponentImplementation: Return Forbidden (HTTP 403) response
+                SystemUser <- APIGateway: Return Forbidden (HTTP 403) response
+            end
+        else Invalid token
+            ComponentImplementation <- IdentityManagementSystem: Token not valid
+            APIGateway <- ComponentImplementation: Return Unauthorized (HTTP 401) response
+            SystemUser <- APIGateway: Return Unauthorized (HTTP 401) response
+        end
     end
-end
-
-group Invalid token
+else Invalid token
     APIGateway <- IdentityManagementSystem: Token not valid
     APIGateway -> SystemUser : Return Unauthorized (HTTP 401) response
 end
