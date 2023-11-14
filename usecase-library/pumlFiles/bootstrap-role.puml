@@ -1,13 +1,19 @@
 @startuml
 
+Box Oauth_Client/relyingParty #Plum
 actor BusinessAdmin
 actor Operations
+endbox
+box  Oauth_ResourceOwner/Resource Server #Plum
 entity Component
 participant "Component Implementation" as ComponentImplementation
+endbox
+
+box OauthAuthorizationServer #Plum
 participant "Identity Operator" as identityOperator
 participant "Secret store" as SecretStore
 participant "Identity Management System" as IDM
-
+endbox
 
 group Bootstrap
 Component <- Operations : Install
